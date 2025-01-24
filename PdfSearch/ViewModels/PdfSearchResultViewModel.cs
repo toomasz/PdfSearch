@@ -1,15 +1,16 @@
-﻿using System.IO;
+﻿using PdfSearch.Models;
+using System.IO;
 
 namespace PdfSearch.ViewModels;
 
 class PdfSearchResultViewModel
 {
-    public PdfSearchResultViewModel(string pdfFilePath, List<string> searchCriteria)
+    public PdfSearchResultViewModel(PdfFileModel pdfFile, List<string> searchCriteria)
     {
-        PdfFilePath = pdfFilePath;
+        PdfFile = pdfFile;
         SearchCriteria = searchCriteria;
     }
-    public string PdfFilePath { get; }
-    public string PdfFileName => Path.GetFileName(PdfFilePath);
+    public PdfFileModel PdfFile { get; }
+    public string PdfFileName => Path.GetFileName(PdfFile.FilePath);
     public List<string> SearchCriteria { get; }
 }

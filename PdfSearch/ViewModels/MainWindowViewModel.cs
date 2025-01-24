@@ -1,10 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CsvHelper;
-using PdfSearch.Models;
 using PdfSearch.Services;
-using Syncfusion.Pdf;
-using Syncfusion.Windows.Forms.PdfViewer;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
@@ -16,10 +13,12 @@ namespace PdfSearch.ViewModels;
 internal partial class MainWindowViewModel :ObservableObject
 {
     private readonly AppConfigService _configService;
+    private readonly PdfSearchService _pdfSearchService;
 
-    public MainWindowViewModel(AppConfigService configService)
+    public MainWindowViewModel(AppConfigService configService, PdfSearchService pdfSearchService)
     {
         _configService = configService;
+        _pdfSearchService = pdfSearchService;
         LoadConfig();
     }
 
@@ -109,58 +108,14 @@ internal partial class MainWindowViewModel :ObservableObject
     public void Search()
     {
         var listOfSearchCriteria = GetSearchCriteriaFromCsvFile(CsvFilePath);
-        var results = new List<PdfSearchResultViewModel>();
         SearchResults.Clear();
-
-        foreach (var pdfFile in PdfFiles)
+        var results = _pdfSearchService.FindPdfFilesMatchingSearchCriteria(PdfFiles.Select(f => f.FullPath).ToList(), listOfSearchCriteria);
+        foreach(var result in results)
         {
-            using (PdfDocumentView pdfDocumentView = new())
-            {
-                pdfDocumentView.Load(pdfFile.FullPath);
-
-                var textFromPages = new List<string>();
-                for(int i =0; i < pdfDocumentView.PageCount; i++)
-                {
-                    string extractedText = pdfDocumentView.ExtractText(i, out TextLines textLines);
-                    textFromPages.Add(extractedText);
-                }
-
-                var pdfModel = new PdfFileModel(textFromPages);
-
-                foreach (var searchCriteria in listOfSearchCriteria)
-                {
-                    if (IsPdfMatchingSearchCriteria(pdfModel, searchCriteria))
-                    {
-                        SearchResults.Add(new PdfSearchResultViewModel(pdfFile.FullPath, searchCriteria));
-                    }
-                }
-            }
+            SearchResults.Add(new PdfSearchResultViewModel(result.PdfFile, result.SearchCriteria));
         }
     }
 
-    private bool IsPdfMatchingSearchCriteria(PdfFileModel model, List<string> searchCriteria)
-    {
-        foreach (var keyword in searchCriteria)
-        {
-            if (!IsKeywordFound(keyword, model))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private bool IsKeywordFound(string keyword, PdfFileModel pdfModel)
-    {
-        for (int i = 0; i < pdfModel.TextFromPages.Count; i++)
-        {
-            if (pdfModel.TextFromPages[i].IndexOf(keyword, StringComparison.InvariantCultureIgnoreCase) != -1)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
 
     private List<List<string>> GetSearchCriteriaFromCsvFile(string csvFile)
     {

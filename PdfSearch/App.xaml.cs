@@ -10,7 +10,7 @@ public partial class App : System.Windows.Application
     {
         var mainWindow = new MainWindow
         {
-            DataContext = new MainWindowViewModel(new AppConfigService())
+            DataContext = new MainWindowViewModel(new AppConfigService(), new PdfSearchService())
         };
         mainWindow.Show();
         base.OnStartup(e);
