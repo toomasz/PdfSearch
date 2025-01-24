@@ -9,21 +9,26 @@
         Title="MainWindow" Height="450" Width="800">
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        
+        <DataTemplate DataType="{x:Type vm:PdfFileViewModel}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" Width="200"/>
+                <Button Content="X" Command="{Binding DataContext.RemovePdfFileCommand, RelativeSource={RelativeSource AncestorType=ItemsControl} }" CommandParameter="{Binding }"/>
+            </StackPanel>
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:MainWindowViewModel}">
-            <StackPanel>
+            <StackPanel Margin="20">
                 <Button Content="Add pdf file" Command="{Binding AddPdfFileCommand}"/>
-                <ItemsControl ItemsSource="{Binding PdfFiles}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding }"/>
-                                <Button Content="X" Command="{Binding RemovePdfFileCommand}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                     </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <ItemsControl ItemsSource="{Binding PdfFiles}"/>
+
+
 
                 <Button Content="Add Csv file" Command="{Binding AddCsvFileCommand}"/>
+                <StackPanel Orientation="Horizontal" Visibility="{Binding CsvFileSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock Text="{Binding CsvFileName}" TextTrimming="CharacterEllipsis" Width="200"/>
+                    <Button Content="X" Command="{Binding ClearCsvFileCommand}"/>
+                </StackPanel>
                 <Button Content="Search" Command="{Binding SearchCommand}"/>
 
             </StackPanel>

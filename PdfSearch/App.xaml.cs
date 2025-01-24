@@ -1,4 +1,5 @@
-﻿using PdfSearch.ViewModels;
+﻿using PdfSearch.Services;
+using PdfSearch.ViewModels;
 using System.Windows;
 
 namespace PdfSearch;
@@ -9,7 +10,7 @@ public partial class App : System.Windows.Application
     {
         var mainWindow = new MainWindow
         {
-            DataContext = new MainWindowViewModel()
+            DataContext = new MainWindowViewModel(new AppConfigService())
         };
         mainWindow.Show();
         base.OnStartup(e);
