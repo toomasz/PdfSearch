@@ -10,31 +10,40 @@ class PdfSearchService
     {
         var searchResults = new List<PdfSearchResultModel>();
 
+        var pdfModels = LoadPdfFiles(pdfFiles);
+
+        foreach (var pdfModel in pdfModels)
+        {
+            foreach (var searchCriteria in listOfSearchCriteria)
+            {
+                if (IsPdfMatchingSearchCriteria(pdfModel, searchCriteria))
+                {
+                    searchResults.Add(new PdfSearchResultModel(pdfModel, searchCriteria));
+                }
+            }
+        }   
+
+        return searchResults;
+    }
+
+    private List<PdfFileModel> LoadPdfFiles(List<string> pdfFiles)
+    {
+        var pdfModels = new List<PdfFileModel>();
         foreach (var pdfFilePath in pdfFiles)
         {
             using (PdfDocumentView pdfDocumentView = new())
             {
                 pdfDocumentView.Load(pdfFilePath);
-
                 var textFromPages = new List<string>();
                 for (int i = 0; i < pdfDocumentView.PageCount; i++)
                 {
                     string extractedText = pdfDocumentView.ExtractText(i, out TextLines textLines);
                     textFromPages.Add(extractedText);
                 }
-
-                var pdfModel = new PdfFileModel(pdfFilePath, textFromPages);
-
-                foreach (var searchCriteria in listOfSearchCriteria)
-                {
-                    if (IsPdfMatchingSearchCriteria(pdfModel, searchCriteria))
-                    {
-                        searchResults.Add(new PdfSearchResultModel(pdfModel, searchCriteria));
-                    }
-                }
+                pdfModels.Add(new PdfFileModel(pdfFilePath, textFromPages));
             }
         }
-        return searchResults;
+        return pdfModels;
     }
 
     private bool IsPdfMatchingSearchCriteria(PdfFileModel model, List<string> searchCriteria)

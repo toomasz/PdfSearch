@@ -6,6 +6,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
+using System.Windows;
+using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
 namespace PdfSearch.ViewModels;
@@ -107,15 +109,36 @@ internal partial class MainWindowViewModel :ObservableObject
     [RelayCommand]
     public void Search()
     {
-        var listOfSearchCriteria = GetSearchCriteriaFromCsvFile(CsvFilePath);
-        SearchResults.Clear();
-        var results = _pdfSearchService.FindPdfFilesMatchingSearchCriteria(PdfFiles.Select(f => f.FullPath).ToList(), listOfSearchCriteria);
-        foreach(var result in results)
+        try
         {
-            SearchResults.Add(new PdfSearchResultViewModel(result.PdfFile, result.SearchCriteria));
+            if(string.IsNullOrEmpty(CsvFilePath))
+            {
+                MessageBox.Show("Please select a CSV file", "Search Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            if(PdfFiles.Count == 0)
+            {
+                MessageBox.Show("Please add PDF files", "Search Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var listOfSearchCriteria = GetSearchCriteriaFromCsvFile(CsvFilePath);
+            SearchResults.Clear();
+            var results = _pdfSearchService.FindPdfFilesMatchingSearchCriteria(PdfFiles.Select(f => f.FullPath).ToList(), listOfSearchCriteria);
+            foreach (var result in results)
+            {
+                SearchResults.Add(new PdfSearchResultViewModel(result.PdfFile, result.SearchCriteria));
+            }
+            if(SearchResults.Count == 0)
+            {
+                MessageBox.Show("No results found", "Search Results", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
-
 
     private List<List<string>> GetSearchCriteriaFromCsvFile(string csvFile)
     {
